@@ -1,0 +1,20 @@
+project dStrings is
+
+   type Hware_Option is ("sparc", "amd64", "x86", "pi");
+   Hware : Hware_Option := external ("hware", "amd64");
+
+   for Languages use ("ada", "c");
+   for Source_Dirs use (".");
+   --  Using "hware" variable for obj directory
+   for Object_Dir use "obj_" & hware & "/";
+
+   for Source_Files use ("dstrings.ads", "dstrings.adb", 
+      "dstrings-io.ads", "dstrings-io.adb", 
+      "dstrings-serial_comms.ads", "dstrings-serial_comms.adb", 
+      "serial_communications.ads", "serial_communications.adb", 
+      "serial_comms_h.ads", "serial_comms.h", "serial_comms.c", 
+      "os_constants.ads",
+      "strings_functions.ads", "strings_functions.adb");
+
+end dStrings;
+
