@@ -90,6 +90,7 @@ package dStrings.IO is
    Name_Error : exception renames Ada.IO_Exceptions.Name_Error;
    Use_Error  : exception renames Ada.IO_Exceptions.Use_Error;
    Mode_Error : exception renames Ada.IO_Exceptions.Mode_Error;
+   End_Error  : exception renames Ada.IO_Exceptions.End_Error;
    
    type file_type is private;
    type file_mode is (In_File, Out_File, Append_File, In_Out_File);
@@ -104,6 +105,7 @@ package dStrings.IO is
    procedure Delete(file : in out file_type);
    procedure Reset (file : in out file_type; mode : file_mode);
    procedure Reset (file : in out file_type);
+   function Is_Open(file : file_type) return boolean;
    
    function Mode(file : file_type) return file_mode;
    function Name(file : file_type) return string;
