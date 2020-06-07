@@ -1,4 +1,3 @@
-
   -- **************************************************************************
   -- *                      STRING (TEXT) INPUT/OUTPUT                        *
   -- **************************************************************************
@@ -225,6 +224,11 @@ package body dStrings.IO is
       end if;
    end Reset;
    
+   function Is_Open(file : file_type) return boolean is
+   begin
+      return Ada.Wide_Text_IO.Is_Open(file.text_file.all);
+   end Is_Open;
+
    function Mode(file : file_type) return file_mode is
    begin
       return file.the_mode;
