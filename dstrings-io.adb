@@ -1,3 +1,4 @@
+
   -- **************************************************************************
   -- *                      STRING (TEXT) INPUT/OUTPUT                        *
   -- **************************************************************************
@@ -558,13 +559,13 @@ package body dStrings.IO is
          for line_count in 1 .. spacing loop
             -- get to the next line feed character
             while not file.input_buf.all.There_Is_Input loop
-               delay 0.100;  -- wait a small amount of time for a character.
+               delay 0.010;  -- wait a small amount of time for a character.
             end loop;
             while not file.input_buf.all.Next_Is_Line_Feed loop
                -- skip past non-line feed characters (eat them)
                file.input_buf.all.Read(the_character=> data);
                while not file.input_buf.all.There_Is_Input loop
-                  delay 0.100;  -- wait a small amount of time for a character.
+                  delay 0.010;  -- wait a small amount of time for a character.
                end loop;
             end loop;
             -- then get past the line feed character (eat it)
@@ -635,13 +636,13 @@ package body dStrings.IO is
       if file.IO_method = device_io then
          -- get to the next form feed character
          while not file.input_buf.all.There_Is_Input loop
-            delay 0.100;  -- wait a small amount of time for character.
+            delay 0.050;  -- wait a small amount of time for character.
          end loop;
          while not file.input_buf.all.Next_Is_Form_Feed loop
             -- skip past non-form feed character (eat it)
             file.input_buf.all.Read(the_character=> data);
             while not file.input_buf.all.There_Is_Input loop
-               delay 0.100;  -- wait a small amount of time for character.
+               delay 0.050;  -- wait a small amount of time for character.
             end loop;
          end loop;
          -- then get past the form feed character (eat it)
