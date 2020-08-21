@@ -51,6 +51,7 @@ package body dStrings.Serial_Comms is
                   wide_character'Val(character'Pos(Ada.Characters.Latin_1.FF));
    carriage_ret_char : constant wide_character := 
                   wide_character'Val(character'Pos(Ada.Characters.Latin_1.CR));
+   retry_delay_counts: constant natural := 12;
       
    task body Serial_Communications_Task is
        -- This task sets up all serial communications.  However, it only
@@ -87,9 +88,11 @@ package body dStrings.Serial_Comms is
          end;
          if is_arduino then  -- initialise connection.
             declare
-               char_in : string(1..2); -- character;
-               char_out: string(1..1);
-               len     : natural := 0;
+               char_in  : string(1..2); -- character;
+               char_out : string(1..1);
+               len      : natural := 0;
+               delay_ctr: natural := 0;
+               initiate : string(1..1) := (1..1 => Ada.Characters.Latin_1.LF);
             begin
                delay 4.0;  -- wait for Arduino to be ready
                while len = 0 loop
@@ -103,8 +106,14 @@ package body dStrings.Serial_Comms is
                   CS.Read (serial_port, char_in, len);
                   exit when len > 0 and then 
                      char_in(1) = Ada.Characters.Latin_1.LF;
+                  delay_ctr := delay_ctr + 1;
+                  if delay_ctr >= retry_delay_counts then -- initiation failed?
+                     delay_ctr := 0;  -- resend initiation (LF this time)
+                     CS.Write(serial_port, initiate);
+                  end if;
                   if len = 0 then delay 0.01; end if;  -- wait if not ready
                end loop;         
+               delay 2.0;  -- wait for Arduino to flag it is ready
             end; -- Initiate Arduino Connection
          end if;
          input_task := new Serial_Read_Task;
