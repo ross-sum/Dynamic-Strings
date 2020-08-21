@@ -19,6 +19,7 @@ project Test_dStr_IO is
       "strings_functions.adb", "strings_functions.ads", 
       "string_functions.ads", "string_functions.adb",
       "string_conversions.ads", "string_conversions.adb", "test_dstr_io.adb", 
+      "interlocks.ads", "interlocks.adb",
       "serial_comms_h.ads");
 
 end Test_dStr_IO;
