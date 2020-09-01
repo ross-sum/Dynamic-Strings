@@ -112,7 +112,7 @@ package body dStrings.Serial_Comms is
                      CS.Write(serial_port, initiate);
                   end if;
                   if len = 0 then delay 0.01; end if;  -- wait if not ready
-               end loop;         
+               end loop;
                delay 2.0;  -- wait for Arduino to flag it is ready
             end; -- Initiate Arduino Connection
          end if;
