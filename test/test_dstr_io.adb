@@ -30,23 +30,27 @@ procedure Test_dStr_IO is
       my_request : constant text := Value("S[1]");
       my_device  : file_type;
       char_in    : wide_character;
+      loop_cntr  : natural := 20_000;  -- number of times to transmit/receive
    begin
       Put_line("Plug in the device at " & Value(device_name) & " and press enter");
       Get_line(my_input);
-      Open(my_device,  In_Out_file,  device_name, "WCEM=8;9600;arduino");
+      Open(my_device,  In_Out_file,  device_name, "WCEM=8;57600;arduino");
       Put_Line("Opened input and output to " & Value(device_name));
       -- get the initial send from the device.
-      -- Put_Line(my_device, my_request);  -- only do if talking to ligh_switches.ino
+      -- Put_Line(my_device, my_request);  -- only do if talking to light_switches.ino
       while not End_Of_Line(my_device) loop
          Get (my_device, char_in);
          Put(char_in);
       end loop;
       New_Line;
       Skip_Line(my_device);
-      Put_Line(my_device, my_request);
-      Put_line("sent the request '" & my_request & "'.");
-      Get_Line(my_device,  my_input);
-      Put_Line("For input: " & my_request & ", got: '" & my_input & "'.");
+      while loop_cntr > 0 loop  -- perform a soak test
+         Put_Line(my_device, my_request);
+         Put_line("sent the request '" & my_request & "'.");
+         Get_Line(my_device,  my_input);
+         Put_Line("For input: " & my_request & ", got: '" & my_input & "'.");
+         loop_cntr := loop_cntr -1;
+      end loop;
       Close(my_device);
    end Test_a_device;
    
@@ -80,7 +84,7 @@ begin
    
    -- device test.  Requires a serial device to be plugged in.
    -- It should be at /dev/ttyUSB0
-   Test_a_device("/dev/ttyUSB0");
+   Test_a_device("/dev/ttyACM0");
    
    Put_Line(Value("Done."));
    
