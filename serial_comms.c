@@ -43,23 +43,23 @@ int set_interface_attribs(int fd, unsigned speed, unsigned databits,
       tty.c_cflag &= ~PARENB;
    }
    /* interpret the number of stop bits */
-   if (stopbits = 0) {    // 1 stop bit
+   if (stopbits == 0) {    // 1 stop bit
       tty.c_cflag &= ~CSTOPB;
    } 
    else {               // 2 stop bits
       tty.c_cflag |= CSTOPB;
    }
    /* interpret the flow control required */
-   if (flow = 0) {
+   if (flow == 0) {
       tty.c_cflag &= ~CRTSCTS;    /* no hardware flow control */
    } 
-   else if (flow = 1) {
+   else if (flow == 1) {
       tty.c_cflag |= CRTSCTS;    /* hardware flow control */
    } 
-   else {  // flow = 2
+   else {  // flow == 2
       tty.c_cflag |= IXON;    /* XOn/XOff flow control */
    }
-
+   
    /* setup for non-canonical mode */
    tty.c_iflag &= ~(IGNBRK | BRKINT | PARMRK | ISTRIP | INLCR | IGNCR | ICRNL | IXON);
    tty.c_lflag &= ~(ECHO | ECHONL | ICANON | ISIG | IEXTEN);
@@ -92,25 +92,12 @@ int set_blocking_and_timeout(int fd, int mcount, int timeout)
       //printf("Error tcsetattr: %s\n", strerror(errno));
       return -(errno);
    }
+   return 0;
 }
 
 int set_mincount(int fd, int mcount)
 {
-   struct termios tty;
-
-   if (tcgetattr(fd, &tty) < 0) {
-      // printf("Error tcgetattr: %s\n", strerror(errno));
-      return -(errno);
-   }
-
-   tty.c_cc[VMIN] = mcount ? 1 : 0;  /* minimum characters to receive */
-   tty.c_cc[VTIME] = 5;        /* 5 * 0.1 = half second timer */
-
-   if (tcsetattr(fd, TCSANOW, &tty) < 0) {
-      // printf("Error tcsetattr: %s\n", strerror(errno));
-      return -(errno);
-   }
-   return 0;
+   return set_blocking_and_timeout(fd, mcount, 5);
 }
 
 /* e.g.:
