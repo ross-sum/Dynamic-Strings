@@ -42,6 +42,8 @@ with OS_Constants;
 with serial_comms_h;          use serial_comms_h;
 with Interfaces.C.Strings;    use Interfaces.C.Strings;
 -- with Error_Log, String_Conversions;  use String_Conversions;
+with Ada.Text_io;
+with Ada.Exceptions; --, Ada.Unchecked_Deallocation;
 
 package body Serial_Communications is
    use Interfaces.C;
@@ -53,7 +55,7 @@ package body Serial_Communications is
    subtype unsigned is Interfaces.C.unsigned;
    subtype char is Interfaces.C.char;
    subtype unsigned_char is Interfaces.C.unsigned_char;
-
+   
    C_Data_Rate : constant array (Data_Rate) of unsigned :=
                    (B75     => OSC.B75,
                     B110    => OSC.B110,
@@ -109,6 +111,7 @@ package body Serial_Communications is
 
    procedure Raise_Error (Message : String; Error : Integer := Errno) is
    begin
+      Ada.Text_IO.Put_Line(Message);
       raise Serial_Error;--  with Message
    --         & (if Error /= 0
    --            then " (" & Errno_Message (Err => Error) & ')'
@@ -142,12 +145,17 @@ package body Serial_Communications is
 
    procedure Open(Port : in out Serial_Port; Name : in Port_Name) is
    
-      C_Name  : constant chars_ptr := New_String(String (Name) & ASCII.NUL);
+      -- procedure Unchecked_Free is
+      --   new Ada.Unchecked_Deallocation (string, chars_ptr);
+   
+      -- C_Name  : constant chars_ptr := New_String(String (Name) & ASCII.NUL);
+      C_Name  : chars_ptr := New_String(String (Name) & ASCII.NUL);
       res     : C.int;
       the_port: C.int := 0;
    
    begin
       Res := C_Open(the_port, C_Name);
+      Free (C_Name);
    
       if res <= -1 then
          Raise_Error ("open: open failed for file " & String(Name) & ".");
@@ -247,6 +255,7 @@ package body Serial_Communications is
          end;
          Last := buffer'First  + Natural(res);
       end if;
+      Free (in_buffer);
    
    end Read;
 
@@ -256,7 +265,8 @@ package body Serial_Communications is
 
    procedure Write(Port   : in out Serial_Port; Buffer : in string) is
    
-      out_buffer : constant chars_ptr := New_String (Buffer & ASCII.NUL);
+      -- out_buffer : constant chars_ptr := New_String (Buffer & ASCII.NUL);
+      out_buffer : chars_ptr := New_String (Buffer & ASCII.NUL);
       len        : constant natural := Buffer'Length;
       res        : C.int;
    
@@ -265,8 +275,8 @@ package body Serial_Communications is
          Raise_Error ("write: port not opened", 0);
       end if;
    
-      -- Res := write (int (Port.H.all), Buffer'Address, Len);
       res := C_Write(fd => Port.Num, data => out_buffer, len => C.int(len));
+      Free (out_buffer);
    
       if res <= -1 then
          Raise_Error ("write failed with length " & C.int'Image(-res));
@@ -286,6 +296,11 @@ package body Serial_Communications is
       if Port.Num /= 0 then
          res := C_Close(fd => Port.Num);
       end if;
+      
+    exception
+       when Constraint_Error =>
+          Raise_Error ("Close failed with a Constraint_Error with result." & 
+                       C.int'Image(-res), 1);
    end Close;
 
 end Serial_Communications;
