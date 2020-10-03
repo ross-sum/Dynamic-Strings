@@ -42,7 +42,7 @@ with OS_Constants;
 with serial_comms_h;          use serial_comms_h;
 with Interfaces.C.Strings;    use Interfaces.C.Strings;
 -- with Error_Log, String_Conversions;  use String_Conversions;
-with Ada.Text_io;
+-- with Ada.Text_io;
 with Ada.Exceptions; --, Ada.Unchecked_Deallocation;
 
 package body Serial_Communications is
@@ -111,7 +111,7 @@ package body Serial_Communications is
 
    procedure Raise_Error (Message : String; Error : Integer := Errno) is
    begin
-      Ada.Text_IO.Put_Line(Message);
+      -- Ada.Text_IO.Put_Line(Message);
       raise Serial_Error;--  with Message
    --         & (if Error /= 0
    --            then " (" & Errno_Message (Err => Error) & ')'
@@ -297,10 +297,10 @@ package body Serial_Communications is
          res := C_Close(fd => Port.Num);
       end if;
       
-    exception
-       when Constraint_Error =>
-          Raise_Error ("Close failed with a Constraint_Error with result." & 
-                       C.int'Image(-res), 1);
+      exception
+         when Constraint_Error =>
+            Raise_Error ("Close failed with a Constraint_Error with result " & 
+                         C.int'Image(-res), 1);
    end Close;
 
 end Serial_Communications;
