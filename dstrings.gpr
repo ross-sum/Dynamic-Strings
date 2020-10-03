@@ -1,6 +1,8 @@
 project dStrings is
+   -- $Revision:$
 
    type Hware_Option is ("sparc", "amd64", "x86", "pi");
+   -- Hware : Hware_Option := external ("hware", "pi");
    Hware : Hware_Option := external ("hware", "amd64");
 
    for Languages use ("ada", "c");
