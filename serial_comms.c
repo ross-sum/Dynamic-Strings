@@ -133,7 +133,7 @@ int Write(int fd, char *data, int len)
    wlen = write(fd, data, len);
    if (wlen != len) {
       //printf("Error from write: %d, %d\n", wlen, errno);
-      return -wlen;
+      return -errno;
    }
    return 0;
 }
@@ -150,4 +150,12 @@ int Read(int fd, char *data, int length)
    }
    // If rdlen < 0 then error.  If == 0 then no data yet (time-out).
    return rdlen;
+}
+
+ // Assuming the error has just occurred, turns the error number into
+// a string and returns it in 'data'.
+void Errno_Message(int err, char *data, int len)
+{
+   data = strerror(err);
+   len  = strlen(data);
 }

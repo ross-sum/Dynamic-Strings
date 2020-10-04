@@ -110,12 +110,20 @@ package body Serial_Communications is
    -----------------
 
    procedure Raise_Error (Message : String; Error : Integer := Errno) is
+      function Errno_Message(Err : integer) return string is
+         the_error : chars_ptr;
+         error_len : C.int := 0;
+      begin
+         C_Errno_Message(err => C.Int(Err), 
+                         data => the_error, len => error_len);
+         return Interfaces.C.Strings.Value(the_error);
+      end Errno_Message;
    begin
       -- Ada.Text_IO.Put_Line(Message);
-      raise Serial_Error;--  with Message
-   --         & (if Error /= 0
-   --            then " (" & Errno_Message (Err => Error) & ')'
-   --            else "");
+      raise Serial_Error  with Message
+            & (if Error /= 0
+               then " (" & Errno_Message (Err => Error) & ')'
+               else "");
    end Raise_Error;
 
    ------------------------------------------

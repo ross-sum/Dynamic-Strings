@@ -58,5 +58,12 @@ package serial_comms_h is
    function C_Read (fd : int; data : Interfaces.C.Strings.chars_ptr; 
                     length : int) return int;  -- ./serial_comms.h:36
    pragma Import (C, C_Read, "Read");
+   
+   -- Assuming the error has just occurred, turns the error number into
+   -- a string and returns it in 'data'.
+   procedure C_Errno_Message(err : int; 
+                             data : in out Interfaces.C.Strings.chars_ptr;
+                              len  : out int);
+   pragma Import (C, C_Errno_Message, "Errno_Message");
 
 end serial_comms_h;

@@ -34,3 +34,7 @@ int Write(int fd, char *data, int len);
 // returns the number of bytes read.  If there is no data yet, then
 // 0 is returned.
 int Read(int fd, char *data, int length);
+
+void Errno_Message(int err, char *data, int len);
+// Assuming the error has just occurred, turns the error number into
+// a string and returns it in 'data'.
