@@ -8,17 +8,22 @@
 DYNAMIC = true
 # Use standard variables to define compile and link flags
 #
-TN=test_dstr_io
-SC=serial_comms
+TN=test/test_dstr_io
+SC=dstrings
 SOURCE=.
 ACC=gprbuild
 TS=$(TN).gpr
 SS=$(SC).gpr
 HOST_TYPE := $(shell uname -m)
+OS_TYPE := $(shell uname -o)
 ifeq ($(HOST_TYPE),amd)
         TARGET=sparc
 else ifeq ($(HOST_TYPE),x86_64)
+ifeq ($(OS_TYPE),Cygwin)
+        TARGET=win
+else
         TARGET=amd64
+endif
 else ifeq ($(HOST_TYPE),x86)
         TARGET=x86
 else ifeq ($(HOST_TYPE),i686)
@@ -37,7 +42,9 @@ ifeq ("$1.",".")
 else
 	FLAGS=-Xhware=$(TARGET) $1
 endif
-
+ifeq ($(OS_TYPE),Cygwin)
+	FLAGS+=-cargs -I/usr/include/sys
+endif
 
 test_dstr_io:
 	echo "Building for $(HOST_TYPE) at $(TD):"

@@ -4,9 +4,9 @@
 --                                                                   --
 --                                B o d y                            --
 --                                                                   --
---                            $Revision: 1.1 $                       --
+--                            $Revision: 1.2 $                       --
 --                                                                   --
---  Copyright (C) 1999,2001  Hyper Quantum Pty Ltd.                  --
+--  Copyright (C) 1999,2001,2021  Hyper Quantum Pty Ltd.             --
 --  Written by Ross Summerfield.                                     --
 --                                                                   --
 --  This package provides some string manipulation capabilities for  --
@@ -16,7 +16,8 @@
 --  $Log: strings_functions.adb,v $
 --  Revision 1.1  2001/04/29 01:17:08  ross
 --  Initial revision
---                                                            --
+--  Revision 1.2  2021/02/28 20:48:00  ross
+--  Added in the reverse of Assemble (Disassemble).
 --                                                                   --
 --  This  library is free software; you can redistribute it  and/or  --
 --  modify it under terms of the GNU Lesser General  Public Licence  --
@@ -189,6 +190,24 @@ package body Strings_Functions is
       end loop;
       return the_result;
    end Assemble;
+
+   function Disassemble(from_string : in text;
+   separated_by : in wide_character := ';')return text_array is
+      -- Create an array that contains all the components in the
+      -- text, breaking it apart with each component separated by the
+      -- specified character.
+      num_rows   : constant natural := 
+                             Component_Count(of_the_string => from_string, 
+                                             separated_by  => separated_by);
+      the_result : text_array(1..num_rows);
+   begin
+      for item in 1 .. num_rows loop
+         the_result(item) := Component(of_the_string => from_string, 
+                                     at_position => item,
+                                     separated_by => separated_by);
+      end loop;
+      return the_result;
+   end Disassemble;
 
 begin
    null;
