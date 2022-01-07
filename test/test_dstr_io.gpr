@@ -4,7 +4,7 @@ project Test_dStr_IO is
    Hware : Hware_Option := external ("hware", "amd64");
 
    for Languages use ("ada", "c");
-   for Source_Dirs use (".");
+   for Source_Dirs use (".", "../", "../../tools/");
    for Main use ("test_dstr_io.adb");
    --  Using "hware" variable for obj directory
    for Object_Dir use "obj_" & hware & "/";

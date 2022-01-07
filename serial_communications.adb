@@ -119,11 +119,13 @@ package body Serial_Communications is
          return Interfaces.C.Strings.Value(the_error);
       end Errno_Message;
    begin
-      -- Ada.Text_IO.Put_Line(Message);
+      -- Ada.Text_IO.Put_Line("Exception: " & Message);
+      -- Ada.Text_IO.Put_Line("Error number: " & Integer'Image(Error));
+      -- Ada.Text_IO.Put_Line(" = " & Errno_Message (Err => Error));
       raise Serial_Error  with Message
-            & (if Error /= 0
-               then " (" & Errno_Message (Err => Error) & ')'
-               else "");
+                  & (if Error /= 0
+                     then " (" & Errno_Message (Err => Error) & ')'
+                     else "");
    end Raise_Error;
 
    ------------------------------------------
@@ -162,7 +164,12 @@ package body Serial_Communications is
       the_port: C.int := 0;
    
    begin
-      Res := C_Open(the_port, C_Name);
+      if Name'Length>11 and then Name(Name'First..Name'First+10)="/dev/input/"
+      then
+         Res := C_Open_RO(the_port, C_Name);
+      else
+         Res := C_Open(the_port, C_Name);
+      end if;
       Free (C_Name);
    
       if res <= -1 then
@@ -199,7 +206,7 @@ package body Serial_Communications is
       the_flow : constant C.int := Flow_Control'Pos(Flow);
    
    begin
-      if Port.Num = 0 then
+      if Port.Num = -1 then
          Raise_Error ("set: port not opened", 0);
       end if;
    --       if Local then
@@ -227,6 +234,22 @@ package body Serial_Communications is
          Raise_Error ("set: set_blocking_and_timeout failed", -Integer(res));
       end if;
    end Set;
+   
+   ---------------------------
+   -- Switch_Immediate_Read --
+   ---------------------------
+
+   -- type read_types is (off, on);
+   procedure Switch_Immediate_Read(to: read_types) is
+    -- switch on and off the Immediate Read on StdIn.  Off=read entire line,
+    -- terminated by a carriage return/line feed.  On=character at a time.
+   begin
+      if to = off then
+         C_stdin_set(0);
+      else -- to = on
+         C_stdin_set(1);
+      end if;
+   end Switch_Immediate_Read;
 
    ----------
    -- Read --
@@ -240,7 +263,7 @@ package body Serial_Communications is
       res       : C.int;
    
    begin
-      if Port.Num = 0 then
+      if Port.Num = -1 then
          Raise_Error ("read: port not opened", 0);
       end if;
    
@@ -279,7 +302,7 @@ package body Serial_Communications is
       res        : C.int;
    
    begin
-      if Port.Num = 0 then
+      if Port.Num <= 0 then
          Raise_Error ("write: port not opened", 0);
       end if;
    
@@ -301,7 +324,7 @@ package body Serial_Communications is
       res : C.int;
    
    begin
-      if Port.Num /= 0 then
+      if Port.Num > 1 then
          res := C_Close(fd => Port.Num);
       end if;
       

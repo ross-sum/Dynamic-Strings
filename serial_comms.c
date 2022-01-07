@@ -113,6 +113,36 @@ int Open(int fd, char *portname)
    return fd;
 }
 
+int Open_RO(int fd, char *portname)
+{
+   fd = open(portname, O_RDONLY | O_NONBLOCK);
+   if (fd < 0) {
+      // printf("Error opening %s: %s\n", portname, strerror(errno));
+      return -errno;
+   }
+   return fd;
+}
+
+  /* tcgetattr gets the current terminal information and stores it in t.
+     If cmd is 1, the local input flag in t is set to non-blocking input. 
+     Otherwise it is reset. Then tcsetattr changes standard input to t. */
+void stdin_set(int cmd)
+{
+   struct termios t;
+   tcgetattr(1,&t);
+   switch (cmd) {
+      case 1:
+         t.c_lflag &= ~ICANON;
+         t.c_lflag &= ~ECHO;
+         break;
+      default:
+         t.c_lflag |= ICANON;
+         t.c_lflag |= ECHO;
+         break;
+   }
+   tcsetattr(1,0,&t);
+}
+
 int Close(int fd)
 {
    int res;
@@ -144,7 +174,12 @@ int Write(int fd, char *data, int len)
 int Read(int fd, char *data, int length)
 {
    int rdlen;
-   rdlen = read(fd, data, length -1);  // sizeof(data) - 1);
+   if (length > 1) {
+      rdlen = read(fd, data, length -1);  // sizeof(data) - 1);
+   } 
+   else {
+      rdlen = read(fd, data, length);
+   }
    if ((rdlen > 0 ) && (length > 1)) {
       data[rdlen] = 0;  // ensure null terminated if possible
    }

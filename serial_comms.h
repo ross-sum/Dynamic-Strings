@@ -22,6 +22,13 @@ int set_blocking_and_timeout(int fd, int mcount, int timeout);
 /* Open the file, where port name is defined as something like:
     char *portname = "/dev/ttyUSB0"; */
 int Open(int fd, char *portname);
+/* And as read only */
+int Open_RO(int fd, char *portname);
+
+  /* tcgetattr gets the current terminal information and stores it in t.
+     If cmd is 1, the local input flag in t is set to non-blocking input. 
+     Otherwise it is reset. Then tcsetattr changes standard input to t. */
+void stdin_set(int cmd);
 
 /* Close the file */
 int Close(int fd);

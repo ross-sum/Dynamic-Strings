@@ -79,6 +79,8 @@ package Serial_Communications is
 
    -- type Serial_Port is new Ada.Streams.Root_Stream_Type with private;
    type Serial_Port is private;
+   StdIn  : constant Serial_Port;
+   StdOut : constant Serial_Port;
 
    function To_Baud(rate : in natural) return Data_Rate;
    function From_Baud(rate : in Data_Rate) return natural;
@@ -110,6 +112,11 @@ package Serial_Communications is
    --  Note: calling this procedure may reinitialise the serial port hardware
    --  and thus cause loss of some buffered data if used during communication.
 
+   type read_types is (off, on);
+   procedure Switch_Immediate_Read(to: read_types);
+    -- switch on and off the Immediate Read on StdIn.  Off=read entire line,
+    -- terminated by a carriage return/line feed.  On=character at a time.
+
    procedure Read
      (Port   : in out Serial_Port; Buffer: in out string; Last : out natural);
    --  Read a set of bytes, put result into Buffer and set Last accordingly.
@@ -125,7 +132,8 @@ package Serial_Communications is
    --  Close port
 
 private
-
+   use C;
+   
    -- type Port_Data;
    -- type Port_Data_Access is access Port_Data;
 
@@ -133,8 +141,11 @@ private
    --    H : Port_Data_Access;
    -- end record;
    type Serial_Port is record
-         Num : C.int := 0;
+         Num : C.int := -1;
       end record;
+
+   StdIn  : constant Serial_Port := (Num => 0);
+   StdOut : constant Serial_Port := (Num => 1);
 
    Data_Rate_Value : constant array (Data_Rate) of natural :=
                        (B75     =>      75,
@@ -151,8 +162,8 @@ private
                         B57600  =>  57_600,
                         B115200 => 115_200);
 
-  type prefix_array_type is array (port_type) of dStrings.text;
-  prefix_array : constant prefix_array_type :=
+   type prefix_array_type is array (port_type) of dStrings.text;
+   prefix_array : constant prefix_array_type :=
                           (serial => dStrings.Value("/dev/ttyS"),
                            usb    => dStrings.Value("/dev/ttyUSB"),
                            com    => dStrings.Value("COM"));

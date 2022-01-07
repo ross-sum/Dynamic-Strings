@@ -41,6 +41,7 @@
 with Ada.Characters.Latin_1;
 with Ada.IO_Exceptions;
 -- with Error_Log, String_Conversions;  use String_Conversions;
+with Ada.Wide_Text_IO;
 package body dStrings.Serial_Comms is
 
    package CS renames Serial_Communications;
@@ -52,6 +53,7 @@ package body dStrings.Serial_Comms is
    carriage_ret_char : constant wide_character := 
                   wide_character'Val(character'Pos(Ada.Characters.Latin_1.CR));
    retry_delay_counts: constant natural := 12;
+   reset_arduino     : constant character := Ada.Characters.Latin_1.STX;
       
    task body Serial_Communications_Task is
        -- This task sets up all serial communications.  However, it only
@@ -87,18 +89,29 @@ package body dStrings.Serial_Comms is
                   raise Ada.IO_Exceptions.Name_Error;
          end;
          if is_arduino then  -- initialise connection.
+            Ada.Wide_Text_IO.Put_Line(Ada.Wide_Text_IO.Standard_Error, "Start_Communications:is_arduino");
             declare
                char_in  : string(1..2); -- character;
                char_out : string(1..1);
                len      : natural := 0;
                delay_ctr: natural := 0;
                initiate : string(1..1) := (1..1 => Ada.Characters.Latin_1.LF);
+               wait_time: natural := 1000;  --1000x0.01s=100s.
+               wait_ctr : natural := wait_time;
             begin
                delay 4.0;  -- wait for Arduino to be ready
                while len = 0 loop
+                  wait_ctr := wait_ctr - 1;
                   CS.Read (serial_port, char_in, len); -- get initiation
                   if len = 0 then delay 0.01; end if;  -- wait if not ready
+                  if wait_ctr = 0 then -- send a "ping" and reset wait_ctr
+                     Ada.Wide_Text_IO.Put_Line(Ada.Wide_Text_IO.Standard_Error, "Start_Communications:ping");
+                     char_out(1) := reset_arduino;
+                     CS.Write(serial_port, char_out); -- put reset initiation
+                     wait_ctr := wait_time;
+                  end if;
                end loop;
+               Ada.Wide_Text_IO.Put_Line(Ada.Wide_Text_IO.Standard_Error, "Start_Communications:waking up");
                char_out(1) := char_in(1);
                CS.Write(serial_port, char_out); -- put initiation
             -- Wait until we have got all the dots and closing line feed.
@@ -114,6 +127,7 @@ package body dStrings.Serial_Comms is
                   if len = 0 then delay 0.01; end if;  -- wait if not ready
                end loop;
                delay 2.0;  -- wait for Arduino to flag it is ready
+               Ada.Wide_Text_IO.Put_Line(Ada.Wide_Text_IO.Standard_Error, "Start_Communications:on line");
             end; -- Initiate Arduino Connection
          end if;
          input_task := new Serial_Read_Task;

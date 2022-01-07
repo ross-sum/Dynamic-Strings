@@ -55,8 +55,8 @@ serial_comms:
 
 # Define the target "all"
 all:
-	test_dstr_io
 	serial_comms
+	test_dstr_io
 
          # Clean up to force the next compilation to be everything
 clean:

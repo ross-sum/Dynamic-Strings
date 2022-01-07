@@ -39,6 +39,16 @@ package serial_comms_h is
    function C_Open (fd : int; portname : Interfaces.C.Strings.chars_ptr) return int;  -- ./serial_comms.h:24
    pragma Import (C, C_Open, "Open");
 
+     -- And as read only
+   function C_Open_RO (fd : int; portname : Interfaces.C.Strings.chars_ptr) return int;  -- ./serial_comms.h:24
+   pragma Import (C, C_Open_RO, "Open_RO");
+   
+     -- tcgetattr gets the current terminal information and stores it in t.
+     -- If cmd is 1, the local input flag in t is set to non-blocking input. 
+     -- Otherwise it is reset. Then tcsetattr changes standard input to t.
+   procedure C_stdin_set(cmd : int);
+   pragma Import (C, C_stdin_set , "stdin_set");
+
   -- Close the file  
    function C_Close (fd : int) return int;  -- ./serial_comms.h:27
    pragma Import (C, C_Close, "Close");
