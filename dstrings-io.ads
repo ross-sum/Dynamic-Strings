@@ -87,10 +87,11 @@ package dStrings.IO is
    pragma Elaborate_Body;
     --USE dstrings;
     
-   Name_Error : exception renames Ada.IO_Exceptions.Name_Error;
-   Use_Error  : exception renames Ada.IO_Exceptions.Use_Error;
-   Mode_Error : exception renames Ada.IO_Exceptions.Mode_Error;
-   End_Error  : exception renames Ada.IO_Exceptions.End_Error;
+   Name_Error  : exception renames Ada.IO_Exceptions.Name_Error;
+   Use_Error   : exception renames Ada.IO_Exceptions.Use_Error;
+   Mode_Error  : exception renames Ada.IO_Exceptions.Mode_Error;
+   End_Error   : exception renames Ada.IO_Exceptions.End_Error;
+   Status_Error: exception renames Ada.IO_Exceptions.Status_Error;
    
    type file_type is private;
    type file_mode is (In_File, Out_File, Append_File, In_Out_File);
