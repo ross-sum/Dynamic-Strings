@@ -15,15 +15,20 @@ ACC=gprbuild
 TS=$(TN).gpr
 SS=$(SC).gpr
 HOST_TYPE := $(shell uname -m)
+ARCH := $(shell dpkg --print-architecture)
 OS_TYPE := $(shell uname -o)
 ifeq ($(HOST_TYPE),amd)
-        TARGET=sparc
+	TARGET=sparc
 else ifeq ($(HOST_TYPE),x86_64)
-ifeq ($(OS_TYPE),Cygwin)
-        TARGET=win
-else
-        TARGET=amd64
-endif
+	ifeq ($(OS_TYPE),Cygwin)
+		TARGET=win
+	else
+		ifeq ($(ARCH),i386)
+			TARGET=x86
+		else
+			TARGET=amd64
+		endif
+	endif
 else ifeq ($(HOST_TYPE),x86)
         TARGET=x86
 else ifeq ($(HOST_TYPE),i686)
@@ -47,10 +52,11 @@ ifeq ($(OS_TYPE),Cygwin)
 endif
 
 test_dstr_io:
-	echo "Building for $(HOST_TYPE) at $(TD):"
+	echo "Building test_dstr_io for $(HOST_TYPE) at $(TD):"
 	$(ACC) -P $(TS) $(FLAGS)
 
 serial_comms:
+	echo "Building serial_comms for $(HOST_TYPE) at $(TD):"
 	$(ACC) -P $(SS) $(FLAGS)
 
 # Define the target "all"
