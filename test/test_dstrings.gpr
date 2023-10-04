@@ -1,11 +1,11 @@
-project Test_dStr_IO is
+project Test_dStrings is
 
    type Hware_Option is ("sparc", "amd64", "x86", "pi", "win", "pi64");
    Hware : Hware_Option := external ("hware", "amd64");
 
    for Languages use ("ada", "c");
    for Source_Dirs use (".", "../", "../../tools/");
-   for Main use ("test_dstr_io.adb");
+   for Main use ("test_dstrings.adb");
    --  Using "hware" variable for obj directory
    for Object_Dir use "obj_" & hware & "/";
 
@@ -18,9 +18,9 @@ project Test_dStr_IO is
       "serial_communications.adb", "serial_communications.ads", 
       "strings_functions.adb", "strings_functions.ads", 
       "string_functions.ads", "string_functions.adb",
-      "string_conversions.ads", "string_conversions.adb", "test_dstr_io.adb", 
+      "string_conversions.ads", "string_conversions.adb", "test_dstrings.adb", 
       "interlocks.ads", "interlocks.adb",
       "serial_comms_h.ads");
 
-end Test_dStr_IO;
+end Test_dStrings;
 

@@ -64,20 +64,19 @@ package dStrings is
    function Is_Empty(t : in text) return boolean;
    function Element(of_string : in text; at_position : in positive)
    return character;
-   function Wide_Element(of_string : in text; 
-   at_position : in positive)
+   function Wide_Element(of_string : in text; at_position : in positive)
    return wide_character
    renames Ada.Strings.Wide_Unbounded.Element;
    -- gets the element at the position in the string specified
 
    -- use type Ada.Strings.Direction;
-   subtype Direction is Ada.Strings.Direction;
+   subtype sDirection is Ada.Strings.Direction;
 
    function Index(source : in text;
    pattern : in wide_string;
-   going   : in Direction := Forward;
+   going   : in sDirection := Forward;
    mapping : in Ada.Strings.Wide_Maps.Wide_Character_Mapping :=
-   Ada.Strings.Wide_Maps.Identity) return natural
+                                 Ada.Strings.Wide_Maps.Identity) return natural
    renames Ada.Strings.Wide_Unbounded.Index;
 
    function to_text(s: string;    max: positive) return text;
@@ -91,7 +90,7 @@ package dStrings is
    renames Ada.Strings.Wide_Unbounded.To_Wide_String;
 
    function Pos(pattern, source : in text; 
-   starting_at : positive := 1) return integer;
+                starting_at : positive := 1) return integer;
    procedure Clear(str : out text);
    -- Empty the string.  Generally, the procedure should be used
    -- where the string contains data, as this process ensures it
@@ -100,8 +99,7 @@ package dStrings is
    -- Return an empty string.  This function should only be used
    -- where an empty string is required as a parameter, not to
    -- empty a string.
-   procedure Delete(target : in out text; start : in positive; 
-   size : in natural);
+   procedure Delete(target: in out text; start: in positive; size: in natural);
 
    function "&"(str1, str2 : in text) return text
    renames Ada.Strings.Wide_Unbounded."&";
@@ -109,28 +107,22 @@ package dStrings is
    -- return text;
    -- function "&"(src_char : in character; src_string : in text) 
    -- return text;
-   function "&"(src_char : in wide_character; src_string : in text) 
-   return text
+   function "&"(src_char : in wide_character; src_string : in text) return text
    renames Ada.Strings.Wide_Unbounded."&";
-   function "&"(src_string : in text; src_char : in wide_character) 
-   return text
+   function "&"(src_string : in text; src_char : in wide_character) return text
    renames Ada.Strings.Wide_Unbounded."&";
-   function "&"(src_text : in text; src_str : in wide_string) 
-   return text
+   function "&"(src_text : in text; src_str : in wide_string) return text
    renames Ada.Strings.Wide_Unbounded."&";
-   function "&"(src_str : in wide_string; src_text : in text) 
-   return text
+   function "&"(src_str : in wide_string; src_text : in text) return text
    renames Ada.Strings.Wide_Unbounded."&";
    function As_Text(item : in text) return text;
    	   -- used to avoid problems where data type is not determinate.
-pragma Inline(As_Text);
+    pragma Inline(As_Text);
 
    -- byte concatenation into the specified string
-   function Cat(src_string : in text; src_char : in wide_character) 
-   return text
+   function Cat(src_string : in text; src_char : in wide_character) return text
    renames Ada.Strings.Wide_Unbounded."&";
-   function Cat(src_char : in wide_character; src_string : in text) 
-   return text
+   function Cat(src_char : in wide_character; src_string : in text) return text
    renames Ada.Strings.Wide_Unbounded."&";
 
    -- string comparison functions
@@ -148,17 +140,18 @@ pragma Inline(As_Text);
   -- string input/output routines
    function Put_Into_String(item : in long_integer) return text;
    function Put_Into_String(item : in integer)      return text;
-   function Put_Into_String(item : in long_float)   return text;
-   function Put_Into_String(item : in float)        return text;
+   function Put_Into_String(item : in long_float;
+                            trim_to: integer := -1) return text;
+   function Put_Into_String(item : in float;
+                            trim_to: integer := -1) return text;
+   -- convert floating point number into a text string, trimming
+   -- to 'trim_to' decimal places.  If 'trim_to' is neagtive, then
+   -- do not trim.
 
-   function Get_Long_Integer_From_String(item : in text) 
-   return long_integer;
-   function Get_Integer_From_String     (item : in text) 
-   return integer;
-   function Get_Long_Float_From_String  (item : in text) 
-   return long_float;
-   function Get_float_From_String       (item : in text) 
-   return float;
+   function Get_Long_Integer_From_String(item : in text) return long_integer;
+   function Get_Integer_From_String     (item : in text) return integer;
+   function Get_Long_Float_From_String  (item : in text) return long_float;
+   function Get_float_From_String       (item : in text) return float;
 
    procedure Delete_Number_From_String(str : in out text);
    -- delete the number at the start of the string. Will raise an 
@@ -173,36 +166,35 @@ pragma Inline(As_Text);
    procedure set(object : in out text; to_value : in text);
    procedure set(object : in out text; to_value : in string);
    procedure set(object : in out text; to_value : in character);
-   procedure set_to_wide(object : in out text; 
-   to_value: in wide_string);
+   procedure set_to_wide(object : in out text; to_value: in wide_string);
 
-   procedure append(tail : in text;     to : in out text);
+   procedure append(tail : in text;      to : in out text);
    procedure append(tail : in string;    to : in out text);
    procedure append(tail : in character; to : in out text);
-   procedure append(wide_tail : in wide_character; 
-   to : in out text);
-   procedure append(wide_tail : in wide_string; to : in out text);
+   procedure append(wide_tail : in wide_character; to : in out text);
+   procedure append(wide_tail : in wide_string;    to : in out text);
 
    procedure amend(object : in out text; 
-   by     : in text;          position : in positive);
+                   by     : in text;          position : in positive);
    -- Substitute all characters in object starting at position 
    -- for the length of by with the characters of by.
    procedure amend(object : in out text; 
-   by     : in wide_string;    position : in positive);
+                   by     : in wide_string;    position : in positive);
    procedure amend(object : in out text; 
-   by     : in wide_character; position : in positive);
+                   by     : in wide_character; position : in positive);
+   
+   procedure Insert (Source   : in out text;
+                     Before   : in Positive;
+                     New_Item : in Wide_String)
+       renames Ada.Strings.Wide_Unbounded.Insert;
 
-   function locate(fragment : text;        within : text) 
-   return natural;
-   function locate(fragment : string;      within : text) 
-   return natural;
-   function locate(fragment : character;   within : text) 
-   return natural;
-   function locate(wide_fragment : wide_string; within : text) 
-   return natural;
+   function locate(fragment : text;        within : text) return natural;
+   function locate(fragment : string;      within : text) return natural;
+   function locate(fragment : character;   within : text) return natural;
+   function locate(wide_fragment : wide_string; within : text) return natural;
 
    function Sub_String(from : text; starting_at : positive; 
-   for_characters : natural) return text;
+                       for_characters : natural) return text;
    -- return a string containing the specified section of characters
    -- from the requested source string.
 

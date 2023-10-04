@@ -107,6 +107,10 @@ package dStrings.IO is
    procedure Reset (file : in out file_type; mode : file_mode);
    procedure Reset (file : in out file_type);
    function Is_Open(file : file_type) return boolean;
+   procedure Apply_Exclusive_Lock(to_file : in out file_type);
+     -- not yet implemented
+   procedure Release_Exclusive_Lock(on_file : in out file_type);
+     -- not yet implemented
    
    function Mode(file : file_type) return file_mode;
    function Name(file : file_type) return string;

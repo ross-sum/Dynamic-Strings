@@ -32,6 +32,7 @@
 
 with System;  -- for long_integer/long_float
 with Ada.Characters.Handling;  use Ada.Characters.Handling;
+with Ada.Strings;
 -- with Ada.Finalization; use Ada.Finalization;
 -- with Ada.Strings.Wide_Unbounded;
 
@@ -45,11 +46,11 @@ package body dStrings is
    -- Empty_String : EXCEPTION;
    -- No_Number    : EXCEPTION;
 
-   zero   : constant character := '0';
-   nine   : constant character := '9';
-   period : constant character := '.';
-   blank  : constant character := ' ';
-   minus  : constant character := '-';
+   zero   : constant wide_character := '0';
+   nine   : constant wide_character := '9';
+   period : constant wide_character := '.';
+   blank  : constant wide_character := ' ';
+   minus  : constant wide_character := '-';
 
    function Value(of_string : in text) return string is
    -- converts a text into a string
@@ -104,7 +105,7 @@ package body dStrings is
 
    function to_text(c: character; max: positive) return text is
       wide_str_char : wide_string(1..1) := 
-      (others=>wide_character'Val(character'Pos(c)));
+                         (others=>wide_character'Val(character'Pos(c)));
    begin
       return To_Unbounded_Wide_String(wide_str_char);
    end to_text;
@@ -122,20 +123,28 @@ package body dStrings is
    -- function to_text(from_wide: wide_string     ) return text
    -- renames Ada.Strings.Wide_Unbounded.To_Unbounded_Wide_String;
 
-   function to_text(from_wide: wide_character  ) return text is
+   function to_text(from_wide: wide_character) return text is
       wide_str_char : wide_string(1..1) := (others=>from_wide);
    begin
       return To_Unbounded_Wide_String(wide_str_char);
    end to_text;
 
    function Pos(pattern, source : in text; 
-   starting_at : positive := 1) return integer is
+                starting_at : positive := 1) return integer is
+      result : natural;
    begin
       if starting_at = 1 then
          return Index(source, Value(pattern));
       elsif starting_at <= Length(source) then
-         return Index(Tail(source, Length(source)-starting_at+1), 
-            To_Wide_String(pattern));
+         result := Index(Ada.Strings.Wide_Unbounded.
+                        Tail(source, Length(source)-starting_at+1),
+                      Value(pattern));
+         if result > 0
+         then
+            return result + starting_at - 1;
+         else
+            return 0;
+         end if;
       else
          return 0;
       end if;
@@ -158,7 +167,7 @@ package body dStrings is
    end Clear;
 
    procedure Delete(target : in out text; start : in positive; 
-   size : in natural) is
+                    size : in natural) is
    begin
       if size > 0 then
          Ada.Strings.Wide_Unbounded.Delete
@@ -170,15 +179,13 @@ package body dStrings is
    -- function "&"(str1, str2 : in text) return text
    -- renames Ada.Strings.Wide_Unbounded."&";
 
-   function "&"(src_string : in text; src_char : in character) 
-   return text is
+   function "&"(src_string : in text; src_char : in character) return text is
    begin
       return Ada.Strings.Wide_Unbounded."&"(src_string, 
          wide_character'Val(character'Pos(src_char)));
    end "&";
 
-   function "&"(src_char : in character; src_string : in text) 
-   return text is
+   function "&"(src_char : in character; src_string : in text) return text is
    begin
       return Ada.Strings.Wide_Unbounded."&"( 
          wide_character'Val(character'Pos(src_char)), src_string);
@@ -216,7 +223,7 @@ package body dStrings is
    -- renames Ada.Strings.Wide_Unbounded."<=";
 
    -- string input/output routines
-   function Put_Into_String(item : in long_integer)return text is
+   function Put_Into_String(item : in long_integer) return text is
    
       radix : constant long_integer := 10;
       number_string, unit, blank_str : text;
@@ -244,9 +251,9 @@ package body dStrings is
          -- (NB: actually no decimal point)
          while strip_number > 0 loop
             unit := "&"(blank_str,
-               character'Val((strip_number - 
-               (strip_number / radix) * radix)
-               + character'Pos(zero)));
+                        wide_character'Val((strip_number - 
+                                            (strip_number / radix) * radix) +
+                                           wide_character'Pos(zero)));
             strip_number := strip_number / radix;
             number_string := "&"(unit, number_string);
          end loop;
@@ -264,23 +271,25 @@ package body dStrings is
    begin
       return Put_Into_String(long_integer(item));
    end Put_Into_String;
-   function Put_Into_String(item : in long_float)  return text is
+   
+   function Put_Into_String(item : in long_float;
+                            trim_to: integer := -1)  return text is
       radix          : constant long_float := 10.0;
-      decimal_places : constant integer    := 4;
+      decimal_places : constant integer    := 4;  -- minimum decimal places
    
       number_string : text;
       strip_number  : long_float;
-      power, digit  : integer;
+      power         : integer;
+      digit         : long_integer;
    
-      function Convert_Number(data : in long_float) return integer 
-      is
+      function Convert_Number(data : in long_float) return long_integer is
       -- truncates the number
-         element : integer;
+         element : long_integer;
       begin
-         element := integer(data);
+         element := long_integer(data);
          if long_float(element) > data
          then
-            element := integer(data) - 1;
+            element := long_integer(data) - 1;
          end if;
          return element;
       end Convert_Number;
@@ -303,15 +312,17 @@ package body dStrings is
       strip_number := abs(item);
       -- place numbers on the left hand side of the decimal point 
       -- into the temporary string, number_string
+      if power = 0 then
+         number_string := to_text('0',1);
+      end if;
       while power > 0 loop
-         digit := 
-            Convert_Number(strip_number/(radix ** (power - 1)));
-         number_string := "&"(number_string,
-            character'Val(character'Pos(zero) + digit));
+         digit := Convert_Number(strip_number/(radix ** (power - 1)));
+         number_string:="&"(number_string,
+                           wide_character'Val(wide_character'Pos(zero)+digit));
          if strip_number >= 1.0
          then  -- not dealing with 10's, 100's, or 1000's, etc.
             strip_number := strip_number -
-               long_float(digit) * (radix ** (power - 1));
+                            long_float(digit) * (radix ** (power - 1));
          end if;
          power := power - 1;
       end loop;
@@ -324,21 +335,24 @@ package body dStrings is
          strip_number  := strip_number * radix;
          digit         := Convert_Number(strip_number);
          number_string := "&"(number_string,
-            character'Val(character'Pos(zero) + digit));
+                           wide_character'Val(wide_character'Pos(zero)+digit));
          strip_number  := strip_number - long_float(digit);
          power         := power + 1;
+         if trim_to >= 0 and then power > trim_to then
+            exit;
+         end if;
       end loop;
       -- return the result
       return number_string;
    end Put_Into_String;
 
-   function Put_Into_String(item : in float)       return text is
+   function Put_Into_String(item : in float;
+                            trim_to: integer := -1) return text is
    begin
-      return Put_Into_String(long_float(item));
+      return Put_Into_String(long_float(item), trim_to);
    end Put_Into_String;
 
-   function Get_Long_Integer_From_String(item : in text) 
-   return long_integer is
+   function Get_Long_Integer_From_String(item : in text) return long_integer is
       radix : constant long_integer := 10;
       data            : long_integer;
       integer_string  : text;
@@ -347,8 +361,8 @@ package body dStrings is
    begin
       integer_string := item;
    -- eliminate leading blanks
-      while (Element(integer_string, 1) = blank) and
-      (Length(integer_string) > 0) loop
+      while (Wide_Element(integer_string, 1) = blank) and
+            (Length(integer_string) > 0) loop
          Delete(integer_string, 1, 1);
       end loop; -- extract leading blanks
    -- check for empty string error
@@ -357,7 +371,7 @@ package body dStrings is
          raise Empty_String;
       end if;
    -- check for negative number
-      if Element(integer_string, 1) = minus
+      if Wide_Element(integer_string, 1) = minus
       then
          negative_number := true;
          Delete(integer_string, 1, 1);
@@ -368,9 +382,9 @@ package body dStrings is
    -- load the integer into the temporary string
       Clear(temp_string);
       while Length(integer_string) > 0 and then 
-      Element(integer_string, 1) in zero..nine loop
+            Wide_Element(integer_string, 1) in zero..nine loop
          temp_string := Ada.Strings.Wide_Unbounded.
-            "&"(temp_string, Element(integer_string, 1));
+                          "&"(temp_string, Wide_Element(integer_string, 1));
          Delete(integer_string, 1, 1);
       end loop; -- while a valid numeral
    -- check for valid data
@@ -382,8 +396,8 @@ package body dStrings is
       data := 0;
       while Length(temp_string) > 0 loop
          data := data * radix + 
-            (character'Pos(Element(temp_string, 1)) -
-            character'Pos(Zero));
+            (wide_character'Pos(Wide_Element(temp_string, 1)) -
+             wide_character'Pos(Zero));
          Delete(temp_string, 1, 1);
       end loop;
       if negative_number
@@ -393,8 +407,7 @@ package body dStrings is
       return data;
    end Get_Long_Integer_From_String;
 
-   function Get_Integer_From_String     (item : in text) 
-   return integer is
+   function Get_Integer_From_String (item : in text) return integer is
    begin
       return integer(Get_Long_Integer_From_String(item));
    end Get_Integer_From_String;
@@ -411,7 +424,7 @@ package body dStrings is
       float_string := item;
    -- eliminate leading blanks
       while (Length(float_string) > 0)  and then 
-      (Element(float_string, 1) = blank) loop
+            (Wide_Element(float_string, 1) = blank) loop
          Delete(float_string, 1, 1);
       end loop; -- eliminate leading blanks
    -- check for empty string error
@@ -420,7 +433,7 @@ package body dStrings is
          raise Empty_String;
       end if;
    -- check for negative number
-      if Element(float_string, 1) = minus
+      if Wide_Element(float_string, 1) = minus
       then
          negative_number := true;
          Delete(float_string, 1, 1);
@@ -431,10 +444,10 @@ package body dStrings is
    -- load the number into the temporary string
       Clear(temp_string);
       while (Length(float_string) > 0) and then
-      ((Element(float_string, 1) in zero..nine) or
-      (Element(float_string, 1) = period)) loop
+            ((Wide_Element(float_string, 1) in zero..nine) or
+             (Wide_Element(float_string, 1) = period)) loop
          temp_string := Ada.Strings.Wide_Unbounded.
-            "&"(temp_string, Element(float_string, 1));
+                           "&"(temp_string, Wide_Element(float_string, 1));
          Delete(float_string, 1, 1);
       end loop; -- get valid number
    -- check for valid data
@@ -445,20 +458,21 @@ package body dStrings is
    -- extract the number from the temporary string
       data := 0.0;
       while (Length(temp_string) > 0) and then
-      (Element(temp_string, 1) /= period) loop
+            (Wide_Element(temp_string, 1) /= period) loop
          data := data * radix +
-            long_float(character'Pos(Element(temp_string, 1)) -
-            character'Pos(Zero));
+                 long_float(wide_character'Pos(Wide_Element(temp_string, 1)) -
+                            wide_character'Pos(Zero));
          Delete(temp_string, 1, 1);      -- delete the digit
       end loop;
       divisor := 1.0 / radix;
-      if Element(temp_string, 1) = period
+      if Length(temp_string) > 0 and then 
+         Wide_Element(temp_string, 1) = period
       then
          Delete(temp_string, 1, 1);    -- delete the period
          while (Length(temp_string) > 0) loop
             data := data + 
-               long_float(character'Pos(Element(temp_string, 1)) -
-               character'Pos(Zero)) * divisor;
+                    long_float(wide_character'Pos(Wide_Element(temp_string,1))-
+                               wide_character'Pos(Zero)) * divisor;
             divisor := divisor / radix;
             Delete(temp_string, 1, 1);  -- delete the digit
          end loop;
@@ -470,8 +484,7 @@ package body dStrings is
       return data;
    end Get_Long_Float_From_String;
 
-   function Get_float_From_String       (item : in text) 
-   return float is
+   function Get_float_From_String (item : in text) return float is
    begin
       return float(Get_Long_Float_From_String(item));
    end Get_Float_From_String;
@@ -481,7 +494,7 @@ package body dStrings is
    -- Empty_String error, but not a No_Number error
    begin
    -- eliminate leading blanks
-      while (Element(str, 1) = blank) and (Length(str) > 0) loop
+      while (Wide_Element(str, 1) = blank) and (Length(str) > 0) loop
          Delete(str, 1, 1);
       end loop; -- extract leading blanks
    -- check for empty string error
@@ -490,13 +503,13 @@ package body dStrings is
          raise Empty_String;
       end if;
    -- check for negative number
-      if Element(str, 1) = minus
+      if Wide_Element(str, 1) = minus
       then
          Delete(str, 1, 1);
       end if;
    -- extract the number from the input string
       while (Length(str) > 0) and then
-      (Element(str, 1) in zero..nine or Element(str, 1) = period)
+      (Wide_Element(str, 1) in zero..nine or Wide_Element(str, 1) = period)
       loop
          Delete(str, 1, 1);
       end loop; -- while a valid numeral
@@ -552,25 +565,23 @@ package body dStrings is
       Ada.Strings.Wide_Unbounded.Append(to, tail_str);
    end append;
 
-   procedure append(wide_tail : in wide_character; 
-   to : in out text) is
+   procedure append(wide_tail : in wide_character; to : in out text) is
    begin
       Ada.Strings.Wide_Unbounded.Append(to, wide_tail);
    end append;
 
-   procedure append(wide_tail : in wide_string; to : in out text) 
-   is
+   procedure append(wide_tail : in wide_string; to : in out text) is
    begin
       Ada.Strings.Wide_Unbounded.Append(to, wide_tail);
    end append;
 
    procedure amend(object : in out text; 
-   by     : in text;          position : in positive) is
+                   by     : in text;          position : in positive) is
    -- Substitute all characters in object starting at position 
    -- for the length of by with the characters of by.
    begin
       Replace_Slice(object, position, position + Length(by) + 1,
-         To_Wide_String(by));
+                    To_Wide_String(by));
    end Amend;
 
    procedure amend(object : in out text; 
@@ -587,40 +598,53 @@ package body dStrings is
       Replace_Slice(object, position, position, by_string);
    end Amend;
 
-   function locate(fragment : text;        within : text) 
-   return natural is
+   function locate(fragment : text;        within : text) return natural is
+      result : natural := 0;
+   begin
+      result := Index(within, To_Wide_String(fragment));
+      return result;
+      exception
+         when Ada.Strings.Pattern_Error =>
+            return 0;  -- pattern clearly doesn't exist
+   end Locate;
+
+   function locate(fragment : string;      within : text) return natural is
    begin
       return Index(within, To_Wide_String(fragment));
    end Locate;
 
-   function locate(fragment : string;      within : text) 
-   return natural is
-   begin
-      return Index(within, To_Wide_String(fragment));
-   end Locate;
-
-   function locate(fragment : character;   within : text) 
-   return natural is
+   function locate(fragment : character;   within : text) return natural is
       fragment_string : wide_string(1..1) :=  
-      (others=>wide_character'Val(character'Pos(fragment)));
+                         (others=>wide_character'Val(character'Pos(fragment)));
    begin
       return Index(within, fragment_string);
    end Locate;
 
-   function locate(wide_fragment : wide_string; within : text) 
-   return natural is
+   function locate(wide_fragment : wide_string; within: text) return natural is
+      result : natural := 0;
    begin
-      return Index(within, wide_fragment);
+      result := Index(within, wide_fragment);
+      return result;
+      exception
+         when Ada.Strings.Pattern_Error =>
+            return 0;  -- pattern clearly doesn't exist
    end Locate;
 
    function Sub_String(from : text; starting_at : positive; 
-   for_characters : natural) return text is
+                       for_characters : natural) return text is
    -- return a string containing the specified section of characters
    -- from the requested source string.
    begin
-      if for_characters > 0 then
-         return To_Unbounded_Wide_String(Slice(from, starting_at, 
-            starting_at + for_characters - 1));
+      if for_characters > 0 and starting_at <= Length(from)
+      then
+         if (starting_at + for_characters - 1) <= Length(from)
+         then
+            return To_Unbounded_Wide_String(Slice(from, starting_at, 
+                                            starting_at + for_characters - 1));
+         else
+            return To_Unbounded_Wide_String(Slice(from, starting_at,
+                                                  Length(from)));
+         end if;
       else
          return Null_Unbounded_Wide_String;
       end if;
@@ -631,8 +655,7 @@ package body dStrings is
 -- Case conversion
    type case_type is (upper_case, lower_case);
 
-   procedure Convert_Case(on_object : in out text; 
-   with_case : in case_type) is
+   procedure Convert_Case(on_object : in out text; with_case : in case_type) is
       from_char,
       last_char,
       to_char    : wide_character;
@@ -647,13 +670,14 @@ package body dStrings is
          to_char   := 'a';
       end if;
       for character_number in 1 .. Length(on_object) loop
-         if Element(on_object, character_number) in
-         from_char .. last_char then
+         if Wide_Element(on_object, character_number) in
+            from_char .. last_char
+         then
             Replace_Element(on_object, character_number,
-               wide_character'Val(wide_character'Pos(
-               Element(on_object, character_number)) - 
-               wide_character'Pos(from_char)+
-               wide_character'Pos(to_char)));
+                            wide_character'Val(wide_character'Pos(
+                                  Wide_Element(on_object, character_number)) -
+                                                wide_character'Pos(from_char)+
+                                               wide_character'Pos(to_char)));
          end if;
       end loop;
    end Convert_Case;

@@ -230,6 +230,19 @@ package body dStrings.IO is
       return Ada.Wide_Text_IO.Is_Open(file.text_file.all);
    end Is_Open;
 
+   procedure Apply_Exclusive_Lock(to_file : in out file_type) is
+     -- Use flock(int fd, int operation); to set the lock to LOCK_EX
+     -- from sys/file.h
+   begin
+      null;
+   end Apply_Exclusive_Lock;
+   
+   procedure Release_Exclusive_Lock(on_file : in out file_type) is
+     -- Use flock(int fd, int operation); to set the lock to LOCK_UN
+   begin
+      null;
+   end Release_Exclusive_Lock;
+
    function Mode(file : file_type) return file_mode is
    begin
       return file.the_mode;
@@ -487,7 +500,7 @@ package body dStrings.IO is
    end Put;
 
    procedure Put(file : in File_Type;
-   item : in dstrings.text) is
+                 item : in dstrings.text) is
    begin
       for counter in 1..Length(item) loop
          Put_UTF8_Char(file, Wide_Element(item, counter));
@@ -513,7 +526,7 @@ package body dStrings.IO is
    end Put_Line;
 
    procedure Put_Line(file : in File_Type;
-   item : in dstrings.text) is
+                      item : in dstrings.text) is
    begin
       Put(file, item);
       New_Line(file);

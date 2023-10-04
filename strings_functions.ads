@@ -39,36 +39,38 @@ package Strings_Functions is
    positive range <>) of wide_character;
 
    function Left_Trim (the_string : text; 
-   of_character : wide_character := ' ') return text;
+                       of_character : wide_character := ' ') return text;
       -- Trim characters (usually spaces) from the left hand side
    function Right_Trim (the_string : text; 
-   of_character : wide_character := ' ') return text;
+                        of_character : wide_character := ' ') return text;
       -- Trim characters (usually spaces) from the right hand side
    function Trim (the_string : text; 
-   of_character : wide_character := ' ') return text;
+                  of_character : wide_character := ' ') return text;
       -- Trim characters (usually spaces) from both sides of the 
       -- string.
    function Component(of_the_string : in text; 
-   at_position : in positive := 1;
-   separated_by : in wide_character := ';') return text;
+                      at_position : in positive := 1;
+                      separated_by : in wide_character := ';') return text;
       -- Get the component from a string where the components are
       -- separated by the specified character.
    function Component_Count(of_the_string : in text; 
-   separated_by : in wide_character := ';') return positive;
+                            separated_by : in wide_character := ';') 
+    return positive;
       -- Return the number of elements, which are separated by the
       -- specified seperator.
    function Assemble(from_strings : in text_array;
-   separated_by : in wide_character := ';')return text;
+                     separated_by : in wide_character := ';') return text;
       -- Create a string that contains all the components in the
       -- array of strings with each component separated by the
       -- specified character.
    function Assemble(from_strings : in string_array;
-   separated_by : in wide_character := ';')return text;
+                     separated_by : in wide_character := ';') return text;
       -- Create a string that contains all the components in the
       -- array of strings with each component separated by the
       -- specified character.
    function Disassemble(from_string : in text;
-   separated_by : in wide_character := ';')return text_array;
+                        separated_by : in wide_character := ';')
+    return text_array;
       -- Create an array that contains all the components in the
       -- text, breaking it apart with each component separated by the
       -- specified character.

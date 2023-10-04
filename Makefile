@@ -9,10 +9,12 @@ DYNAMIC = true
 # Use standard variables to define compile and link flags
 #
 TN=test/test_dstr_io
+TX=test/test_dstrings
 SC=dstrings
 SOURCE=.
 ACC=gprbuild
 TS=$(TN).gpr
+TY=$(TX).gpr
 SS=$(SC).gpr
 HOST_TYPE := $(shell uname -m)
 ARCH := $(shell dpkg --print-architecture)
@@ -37,6 +39,8 @@ else ifeq ($(HOST_TYPE),arm)
         TARGET=pi
 else ifeq ($(HOST_TYPE),armv7l)
         TARGET=pi
+else ifeq ($(HOST_TYPE),aarch64)
+        TARGET=pi64
 endif
 TD=obj_$(TARGET)
 BIN=/usr/local/bin
@@ -55,14 +59,19 @@ test_dstr_io:
 	echo "Building test_dstr_io for $(HOST_TYPE) at $(TD):"
 	$(ACC) -P $(TS) $(FLAGS)
 
+test_dstrings:
+	echo "Building test_dstrings for $(HOST_TYPE) at $(TD):"
+	$(ACC) -P $(TY) $(FLAGS)
+
 serial_comms:
 	echo "Building serial_comms for $(HOST_TYPE) at $(TD):"
 	$(ACC) -P $(SS) $(FLAGS)
 
 # Define the target "all"
 all:
-	serial_comms
 	test_dstr_io
+	test_dstrings
+	serial_comms
 
          # Clean up to force the next compilation to be everything
 clean:
