@@ -147,14 +147,28 @@ package body Strings_Functions is
       the_number : positive := 1;
    begin
       for item in 1..Length(of_the_string) loop
-         if Wide_Element(of_the_string, at_position => item) =
-         separated_by then
+         if Wide_Element(of_the_string, at_position => item) = separated_by
+         then
             the_number := the_number + 1;
          end if;
       end loop;
       return the_number;
    end Component_Count;
 
+   function Count(the_item : in wide_character := ';'; 
+                  in_the_string : in text) return natural is
+      -- Get the total count of the specified character (i.e. 'the_item') in
+      -- the string.
+      the_number : natural := 0;
+   begin
+      for item in 1..Length(in_the_string) loop
+         if Wide_Element(in_the_string, at_position => item) = the_item then
+            the_number := the_number + 1;
+         end if;
+      end loop;
+      return the_number;
+   end Count;
+   
    -- type text_array is array (positive range <>) of ttext;
    function Assemble(from_strings : in text_array;
    separated_by : in wide_character := ';')return text is 

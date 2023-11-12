@@ -53,6 +53,10 @@ package Strings_Functions is
                       separated_by : in wide_character := ';') return text;
       -- Get the component from a string where the components are
       -- separated by the specified character.
+   function Count(the_item : in wide_character := ';'; 
+                  in_the_string : in text) return natural;
+      -- Get the total count of the specified character (i.e. 'the_item') in
+      -- the string.
    function Component_Count(of_the_string : in text; 
                             separated_by : in wide_character := ';') 
     return positive;
