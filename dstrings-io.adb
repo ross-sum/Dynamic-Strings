@@ -227,7 +227,12 @@ package body dStrings.IO is
    
    function Is_Open(file : file_type) return boolean is
    begin
-      return Ada.Wide_Text_IO.Is_Open(file.text_file.all);
+      if Length(file.file_name) > 0
+      then
+         return Ada.Wide_Text_IO.Is_Open(file.text_file.all);
+      else
+         return false;
+      end if;
    end Is_Open;
 
    procedure Apply_Exclusive_Lock(to_file : in out file_type) is
